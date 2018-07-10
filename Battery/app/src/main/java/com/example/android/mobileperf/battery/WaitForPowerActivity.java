@@ -15,12 +15,18 @@
  */
 package com.example.android.mobileperf.battery;
 
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class WaitForPowerActivity extends ActionBarActivity {
@@ -78,7 +84,29 @@ public class WaitForPowerActivity extends ActionBarActivity {
     }
 
     private void applyFilter() {
-        mCheyennePic.setImageResource(R.drawable.pink_cheyenne);
-        mPowerMsg.setText(R.string.photo_filter);
+        if (checkForPower()){
+            mCheyennePic.setImageResource(R.drawable.pink_cheyenne);
+            mPowerMsg.setText(R.string.photo_filter);
+        } else{
+            Toast.makeText(this, "Plug in the device to apply filter", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    // checks if the device is charging
+    private boolean checkForPower(){
+        // It is very easy to subscribe to changes to the battery state, but you can get the current
+        // state by simply passing null in as your receiver.  Nifty, isn't that?
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = this.registerReceiver(null, filter);
+        int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+        boolean acCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_AC);
+        boolean usbCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_USB);
+        boolean wCharge = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
+            wCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
+
+        }
+        return (acCharge || usbCharge || wCharge);
     }
 }
