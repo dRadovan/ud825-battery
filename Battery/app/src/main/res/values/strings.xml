@@ -30,5 +30,6 @@
     <string name="release_wakelock_button">Release the WAKELOCK!</string>
     <string name="wakelock_acquired">Wakelock acquired! Polling server...</string>
     <string name="wakelock_released">Wakelock released! Well done, you.</string>
+    <string name="waiting_for_power">This feature works best when plugged in. Let\'s wait together!</string>
 
 </resources>
