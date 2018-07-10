@@ -84,29 +84,35 @@ public class WaitForPowerActivity extends ActionBarActivity {
     }
 
     private void applyFilter() {
-        if (checkForPower()){
-            mCheyennePic.setImageResource(R.drawable.pink_cheyenne);
-            mPowerMsg.setText(R.string.photo_filter);
-        } else{
-            Toast.makeText(this, "Plug in the device to apply filter", Toast.LENGTH_SHORT).show();
+        // If not plugged in, wait to apply the filter.
+        if (!checkForPower()) {
+            mPowerMsg.setText(R.string.waiting_for_power);
+            return;
         }
 
+        mCheyennePic.setImageResource(R.drawable.pink_cheyenne);
+        mPowerMsg.setText(R.string.photo_filter);
     }
 
-    // checks if the device is charging
-    private boolean checkForPower(){
+    /**
+     * This method checks for power by comparing the current battery state against all possible
+     * plugged in states. In this case, a device may be considered plugged in either by USB, AC, or
+     * wireless charge. (Wireless charge was introduced in API Level 17.)
+     */
+    private boolean checkForPower() {
         // It is very easy to subscribe to changes to the battery state, but you can get the current
         // state by simply passing null in as your receiver.  Nifty, isn't that?
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = this.registerReceiver(null, filter);
-        int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-        boolean acCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_AC);
-        boolean usbCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_USB);
-        boolean wCharge = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
-            wCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
 
+        // There are currently three ways a device can be plugged in. We should check them all.
+        int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+        boolean usbCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_USB);
+        boolean acCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_AC);
+        boolean wirelessCharge = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            wirelessCharge = (chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS);
         }
-        return (acCharge || usbCharge || wCharge);
+        return (usbCharge || acCharge || wirelessCharge);
     }
 }
